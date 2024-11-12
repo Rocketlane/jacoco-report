@@ -63,24 +63,25 @@ export async function action(): Promise<void> {
         head = github.context.payload.pull_request?.head.sha
         prNumber = github.context.payload.pull_request?.number
         break
-      case 'push':
-        base = github.context.payload.before
-        head = github.context.payload.after
-        break
+      // case 'push':
+      //   base = github.context.payload.before
+      //   head = github.context.payload.after
+      //   break
       default:
         core.setFailed(
-          `Only pull requests and pushes are supported, ${github.context.eventName} not supported.`
+          `Only pull requests are supported, ${github.context.eventName} not supported.`
         )
         return
     }
 
     core.info(`base sha: ${base}`)
     core.info(`head sha: ${head}`)
+    core.info(`PR: ${prNumber}`)
 
     const client = github.getOctokit(token)
 
     if (debugMode) core.info(`reportPaths: ${reportPaths}`)
-    const changedFiles = await getChangedFiles(base, head, client, debugMode)
+    const changedFiles = await getChangedFiles(base, head, prNumber, client, debugMode)
     if (debugMode) core.info(`changedFiles: ${debug(changedFiles)}`)
 
     const reportsJsonAsync = getJsonReports(reportPaths, debugMode)
@@ -152,15 +153,25 @@ async function getJsonReports(
 async function getChangedFiles(
   base: string,
   head: string,
+  prNumber: number,
   client: any,
   debugMode: boolean
 ): Promise<ChangedFile[]> {
-  const response = await client.rest.repos.compareCommits({
-    base,
-    head,
+
+
+  // const response = await client.rest.repos.compareCommits({
+  //   base,
+  //   head,
+  //   owner: github.context.repo.owner,
+  //   repo: github.context.repo.repo,
+  // })
+
+
+  const response = await client.pulls.listFiles({
+    pull_number: prNumber,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-  })
+  });
 
   const changedFiles: ChangedFile[] = []
   for (const file of response.data.files) {
