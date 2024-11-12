@@ -20,7 +20,7 @@ export function getPRComment(
     emoji
   )
   const moduleTable = getModuleTable(project.modules, minCoverage, emoji)
-  const filesTable = getFileTable(project, minCoverage, emoji)
+  const filesTable = getFileTableRL(project, minCoverage, emoji)
 
   const tables =
     project.modules.length === 0
