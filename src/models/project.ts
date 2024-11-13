@@ -19,6 +19,7 @@ export interface File {
   overall: Coverage
   changed: Coverage | null
   lines: Line[]
+  prUrl?: string
 }
 
 export interface Coverage {

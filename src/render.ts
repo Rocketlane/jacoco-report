@@ -96,7 +96,7 @@ function getFileTableRL(
       )
       renderRow(
           moduleName,
-          `[${file.name}](${file.url})`,
+          `[${file.name}](${file.prUrl})`,
           file.overall.percentage,
           deltaCoverage,
           file.changed?.percentage ?? null,
