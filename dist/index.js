@@ -170,6 +170,7 @@ async function getChangedFiles(base, head, prNumber, client, debugMode) {
             filePath: file.filename,
             url: file.blob_url,
             lines: (0, util_1.getChangedLines)(file.patch),
+            prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${file.sha}`,
         };
         changedFiles.push(changedFile);
     }
@@ -489,8 +490,8 @@ function getModuleTable(modules, minCoverage, emoji) {
 }
 function getFileTableRL(project, minCoverage, emoji) {
     const tableHeader = project.isMultiModule
-        ? '|Module|File|Coverage|DeltaCoverage||'
-        : '|File|Coverage|DeltaCoverage||';
+        ? '|Module|File|FileCoverage|DeltaCoverage||'
+        : '|File|FileCoverage|DeltaCoverage||';
     const tableStructure = project.isMultiModule
         ? '|:-|:-|:-|:-|:-:|'
         : '|:-|:-|:-|:-:|';

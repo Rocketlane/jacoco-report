@@ -77,8 +77,8 @@ function getFileTableRL(
     emoji: Emoji
 ): string {
   const tableHeader = project.isMultiModule
-      ? '|Module|File|Coverage|DeltaCoverage||'
-      : '|File|Coverage|DeltaCoverage||'
+      ? '|Module|File|FileCoverage|DeltaCoverage||'
+      : '|File|FileCoverage|DeltaCoverage||'
   const tableStructure = project.isMultiModule
       ? '|:-|:-|:-|:-|:-:|'
       : '|:-|:-|:-|:-:|'

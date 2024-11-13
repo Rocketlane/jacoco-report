@@ -188,6 +188,7 @@ async function getChangedFiles(
       filePath: file.filename,
       url: file.blob_url,
       lines: getChangedLines(file.patch),
+      prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${file.sha}`,
     }
     changedFiles.push(changedFile)
   }
