@@ -175,7 +175,7 @@ async function getChangedFiles(
   //   repo: github.context.repo.repo,
   // })
 
-
+  core.info('1');
   const response = await client.rest.pulls.listFiles({
     pull_number: prNumber,
     owner: github.context.repo.owner,
