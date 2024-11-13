@@ -55,13 +55,13 @@ export async function action(): Promise<void> {
 
     let base: string
     let head: string
-    let prNumber: number | undefined
+    let prNumberOpt: number | undefined
     switch (event) {
       case 'pull_request':
       case 'pull_request_target':
         base = github.context.payload.pull_request?.base.sha
         head = github.context.payload.pull_request?.head.sha
-        prNumber = github.context.payload.pull_request?.number
+        prNumberOpt = github.context.payload.pull_request?.number
         break
       // case 'push':
       //   base = github.context.payload.before
@@ -76,8 +76,17 @@ export async function action(): Promise<void> {
 
     core.info(`base sha: ${base}`)
     core.info(`head sha: ${head}`)
-    core.info(`PR: ${prNumber}`)
+    core.info(`PR: ${prNumberOpt}`)
 
+    if(!prNumberOpt) {
+      core.setFailed(
+          `Need a PR number to proceed`
+      )
+      return
+    }
+
+    let prNumber:number = prNumberOpt
+    
     const client = github.getOctokit(token)
 
     if (debugMode) core.info(`reportPaths: ${reportPaths}`)
