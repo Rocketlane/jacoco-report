@@ -47,6 +47,9 @@ export async function action(): Promise<void> {
     continueOnError = parseBooleans(core.getInput('continue-on-error'))
     const debugMode = parseBooleans(core.getInput('debug-mode'))
 
+    const shouldIncludeOverallCoverage = parseBooleans(core.getInput('include-overall-coverage'))
+    const shouldIncludeDeltaCoverage = parseBooleans(core.getInput('include-delta-coverage'))
+
     const event = github.context.eventName
     core.info(`Event is ${event}`)
     if (debugMode) {
@@ -125,6 +128,10 @@ export async function action(): Promise<void> {
           {
             overall: minCoverageOverall,
             changed: minCoverageChangedFiles,
+          },
+          {
+            overall: shouldIncludeOverallCoverage,
+            changed: shouldIncludeDeltaCoverage
           },
           title,
           emoji

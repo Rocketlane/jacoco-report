@@ -64,6 +64,10 @@ describe('Render', function () {
             overall: 30,
             changed: 50,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -82,6 +86,10 @@ describe('Render', function () {
             overall: 70,
             changed: 50,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -99,6 +107,10 @@ describe('Render', function () {
           {
             overall: 70,
             changed: 50,
+          },
+            {
+            overall: true,
+                changed: true,
           },
           'Coverage',
           emoji
@@ -123,6 +135,10 @@ describe('Render', function () {
             overall: 30,
             changed: 60,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -147,6 +163,10 @@ describe('Render', function () {
             overall: 50,
             changed: 64,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -171,6 +191,10 @@ describe('Render', function () {
             overall: 30,
             changed: 80,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -195,6 +219,10 @@ describe('Render', function () {
             overall: 50,
             changed: 20,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -219,6 +247,10 @@ describe('Render', function () {
             overall: 50,
             changed: 20,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           'Coverage',
           emoji
         )
@@ -248,6 +280,10 @@ describe('Render', function () {
             overall: 20,
             changed: 60,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -286,6 +322,10 @@ describe('Render', function () {
             overall: 50,
             changed: 30,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -324,6 +364,10 @@ describe('Render', function () {
             overall: 20,
             changed: 90,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -362,6 +406,10 @@ describe('Render', function () {
             overall: 50,
             changed: 7,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           '',
           emoji
         )
@@ -400,6 +448,10 @@ describe('Render', function () {
             overall: 50,
             changed: 90,
           },
+            {
+              overall: true,
+              changed: true,
+            },
           'Coverage',
           emoji
         )

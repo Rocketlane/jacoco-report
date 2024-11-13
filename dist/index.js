@@ -68,6 +68,8 @@ async function action() {
         const failEmoji = core.getInput('fail-emoji');
         continueOnError = (0, processors_1.parseBooleans)(core.getInput('continue-on-error'));
         const debugMode = (0, processors_1.parseBooleans)(core.getInput('debug-mode'));
+        const shouldIncludeOverallCoverage = (0, processors_1.parseBooleans)(core.getInput('include-overall-coverage'));
+        const shouldIncludeDeltaCoverage = (0, processors_1.parseBooleans)(core.getInput('include-delta-coverage'));
         const event = github.context.eventName;
         core.info(`Event is ${event}`);
         if (debugMode) {
@@ -126,6 +128,9 @@ async function action() {
             await addComment(prNumber, updateComment, (0, render_1.getTitle)(title), (0, render_1.getPRComment)(project, {
                 overall: minCoverageOverall,
                 changed: minCoverageChangedFiles,
+            }, {
+                overall: shouldIncludeOverallCoverage,
+                changed: shouldIncludeDeltaCoverage
             }, title, emoji), client, debugMode);
         }
     }
@@ -456,14 +461,21 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getPRComment = getPRComment;
 exports.getTitle = getTitle;
 const coverageAbsent = '> There is no coverage information present for the Files changed';
-function getPRComment(project, minCoverage, title, emoji) {
+function getPRComment(project, minCoverage, coverageInclusion, title, emoji) {
     const heading = getTitle(title);
     if (!project.overall) {
         return `${heading + coverageAbsent}`;
     }
-    const overallTable = getOverallTable(project.overall, project.changed, minCoverage, emoji);
-    const moduleTable = getModuleTable(project.modules, minCoverage, emoji);
-    const filesTable = getFileTableRL(project, minCoverage, emoji);
+    var overallTable = '';
+    if (coverageInclusion.overall) {
+        overallTable = getOverallTableRl(project.overall, project.changed, minCoverage, emoji);
+    }
+    let moduleTable = '';
+    let filesTable = '';
+    if (coverageInclusion.changed) {
+        moduleTable = getModuleTable(project.modules, minCoverage, emoji);
+        filesTable = getFileTableRL(project, minCoverage, emoji);
+    }
     const tables = project.modules.length === 0
         ? coverageAbsent
         : project.isMultiModule
@@ -508,6 +520,20 @@ function getFileTableRL(project, minCoverage, emoji) {
             const deltaCoverage = getDeltaCoverage(file.changed);
             renderRow(moduleName, `[${file.name}](${file.prUrl})`, file.overall.percentage, deltaCoverage, file.changed?.percentage ?? null, project.isMultiModule);
         }
+    }
+    //total delta
+    const missedLines = project.changed?.missed ?? 0;
+    const coveredLines = project.changed?.covered ?? 0;
+    const totalChangedLines = missedLines + coveredLines;
+    let totalChangedCoverageRow = '';
+    if (totalChangedLines !== 0) {
+        const changedLinesPercentage = (coveredLines / totalChangedLines) * 100;
+        const filesChangedStatus = getStatus(changedLinesPercentage, minCoverage.changed, emoji);
+        totalChangedCoverageRow =
+            '\n' +
+                `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|` +
+                '\n<br>';
+        table = `${table}\n${totalChangedCoverageRow}`;
     }
     return project.isMultiModule
         ? `<details>\n<summary>Files</summary>\n\n${table}\n\n</details>`
@@ -597,6 +623,17 @@ function getOverallTable(overall, changed, minCoverage, emoji) {
                 '\n<br>';
     }
     return `${tableHeader}\n${tableStructure}${changedCoverageRow}`;
+}
+function getOverallTableRl(overall, changed, minCoverage, emoji) {
+    const overallStatus = getStatus(overall.percentage, minCoverage.overall, emoji);
+    const coverageDifference = getCoverageDifference(overall, changed);
+    let coveragePercentage = `${formatCoverage(overall.percentage)}`;
+    if (shouldShow(coverageDifference)) {
+        coveragePercentage += ` **\`${formatCoverage(coverageDifference)}\`**`;
+    }
+    const tableHeader = `|Overall Project|${coveragePercentage}|${overallStatus}|`;
+    const tableStructure = '|:-|:-|:-:|';
+    return `${tableHeader}\n${tableStructure}`;
 }
 function round(value) {
     return Math.round((value + Number.EPSILON) * 100) / 100;

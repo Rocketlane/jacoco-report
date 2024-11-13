@@ -42,6 +42,15 @@ inputs:
     description: 'Run the action in debug mode and get debug logs printed in console'
     required: false
     default: 'false'
+  include-overall-coverage:
+    description: 'Controls whether overall project coverage should be displayed'
+    required: false
+    default: 'true'
+  include-delta-coverage:
+    description: 'Controls whether delta coverage should be displayed'
+    required: false
+    default: 'true'
+
 
 outputs:
   coverage-overall:

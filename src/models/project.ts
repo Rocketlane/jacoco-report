@@ -39,6 +39,11 @@ export interface MinCoverage {
   changed: number
 }
 
+export interface CoverageInclusion {
+  overall: boolean
+  changed: boolean
+}
+
 export interface Emoji {
   pass: string
   fail: string
