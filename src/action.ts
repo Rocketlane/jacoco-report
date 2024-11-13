@@ -86,7 +86,7 @@ export async function action(): Promise<void> {
     }
 
     let prNumber:number = prNumberOpt
-    
+
     const client = github.getOctokit(token)
 
     if (debugMode) core.info(`reportPaths: ${reportPaths}`)
@@ -176,7 +176,7 @@ async function getChangedFiles(
   // })
 
 
-  const response = await client.pulls.listFiles({
+  const response = await client.rest.pulls.listFiles({
     pull_number: prNumber,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
