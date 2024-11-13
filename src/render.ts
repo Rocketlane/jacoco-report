@@ -90,15 +90,15 @@ function getFileTableRL(
       if (index !== 0) {
         moduleName = ''
       }
-      const coverageDifference = getCoverageDifference(
-          file.overall,
+
+      const deltaCoverage = getDeltaCoverage(
           file.changed
       )
       renderRow(
           moduleName,
           `[${file.name}](${file.url})`,
           file.overall.percentage,
-          coverageDifference,
+          deltaCoverage,
           file.changed?.percentage ?? null,
           project.isMultiModule
       )
@@ -111,16 +111,16 @@ function getFileTableRL(
       moduleName: string,
       fileName: string,
       overallCoverage: number | null,
-      coverageDiff: number | null,
+      deltaCoverage: number | null,
       changedCoverage: number | null,
       isMultiModule: boolean
   ): void {
     const status = getStatus(changedCoverage, minCoverage.changed, emoji)
     let coveragePercentage = `${formatCoverage(overallCoverage)}`
-    let coverageDiffPercentage = `${formatCoverage(coverageDiff)}`
+    let deltaCoveragePercentage = `${formatCoverage(deltaCoverage)}`
     const row = isMultiModule
-        ? `|${moduleName}|${fileName}|${coveragePercentage}|${coverageDiffPercentage}|${status}|`
-        : `|${fileName}|${coveragePercentage}|${coverageDiffPercentage}|${status}|`
+        ? `|${moduleName}|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
+        : `|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
     table = `${table}\n${row}`
   }
 }
@@ -182,6 +182,16 @@ function getFileTable(
       : `|${fileName}|${coveragePercentage}|${status}|`
     table = `${table}\n${row}`
   }
+}
+
+
+function getDeltaCoverage(
+    changed: Coverage | null
+): number | null {
+  if (!changed) return null
+  const totalInstructions = changed.covered + changed.missed
+  const coverage = (changed.missed / totalInstructions) * 100
+  return coverage;
 }
 
 function getCoverageDifference(
