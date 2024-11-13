@@ -182,7 +182,7 @@ async function getChangedFiles(
   });
 
   const changedFiles: ChangedFile[] = []
-  for (const file of response.data.files) {
+  for (const file of response.data) {
     if (debugMode) core.info(`file: ${debug(file)}`)
     const changedFile: ChangedFile = {
       filePath: file.filename,
