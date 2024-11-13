@@ -190,7 +190,7 @@ function getDeltaCoverage(
 ): number | null {
   if (!changed) return null
   const totalInstructions = changed.covered + changed.missed
-  const coverage = (changed.missed / totalInstructions) * 100
+  const coverage = (changed.covered / totalInstructions) * 100
   return coverage;
 }
 
