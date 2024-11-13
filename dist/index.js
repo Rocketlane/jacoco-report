@@ -166,11 +166,12 @@ async function getChangedFiles(base, head, prNumber, client, debugMode) {
     for (const file of response.data) {
         if (debugMode)
             core.info(`file: ${(0, util_1.debug)(file)}`);
+        const hash = (0, util_1.computeSHA256)(file.filename);
         const changedFile = {
             filePath: file.filename,
             url: file.blob_url,
             lines: (0, util_1.getChangedLines)(file.patch),
-            prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${file.sha}`,
+            prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${hash}`,
         };
         changedFiles.push(changedFile);
     }
@@ -646,7 +647,9 @@ exports.debug = debug;
 exports.getChangedLines = getChangedLines;
 exports.getFilesWithCoverage = getFilesWithCoverage;
 exports.parseToReport = parseToReport;
+exports.computeSHA256 = computeSHA256;
 const xml2js_1 = __importDefault(__nccwpck_require__(758));
+const crypto = __nccwpck_require__(6982);
 function debug(obj) {
     return JSON.stringify(obj, null, 4);
 }
@@ -796,6 +799,9 @@ function convertObjToReport(obj) {
         package: getPackage(obj),
         counter: getCounter(obj),
     };
+}
+function computeSHA256(input) {
+    return crypto.createHash('sha256').update(input).digest('hex');
 }
 
 

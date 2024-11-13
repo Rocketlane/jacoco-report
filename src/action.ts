@@ -6,10 +6,11 @@ import {parseBooleans} from 'xml2js/lib/processors'
 import * as glob from '@actions/glob'
 import {getProjectCoverage} from './process'
 import {getPRComment, getTitle} from './render'
-import {debug, getChangedLines, parseToReport} from './util'
+import {debug, getChangedLines, parseToReport, computeSHA256} from './util'
 import {Project} from './models/project'
 import {ChangedFile} from './models/github'
 import {Report} from './models/jacoco-types'
+import * as util from "util";
 
 export async function action(): Promise<void> {
   let continueOnError = true
@@ -184,11 +185,13 @@ async function getChangedFiles(
   const changedFiles: ChangedFile[] = []
   for (const file of response.data) {
     if (debugMode) core.info(`file: ${debug(file)}`)
+
+    const hash = computeSHA256(file.filename);
     const changedFile: ChangedFile = {
       filePath: file.filename,
       url: file.blob_url,
       lines: getChangedLines(file.patch),
-      prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${file.sha}`,
+      prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${hash}`,
     }
     changedFiles.push(changedFile)
   }
