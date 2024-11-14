@@ -87,7 +87,7 @@ function getFileTableRL(
   var tableHeader;
   var tableStructure;
   if(coverageInclusion.overall && coverageInclusion.changed) {
-    tableHeader = '|File|Coverage|DeltaCoverage||'
+    tableHeader = '|File|TotalCoverage|DeltaCoverage||'
     tableStructure = '|:-|:-|:-|:-:|'
   }
   else if(coverageInclusion.changed) {
@@ -95,7 +95,7 @@ function getFileTableRL(
     tableStructure = '|:-|:-|:-:|'
   }
   else if(coverageInclusion.overall) {
-    tableHeader = '|File|Coverage||'
+    tableHeader = '|File|TotalCoverage||'
     tableStructure = '|:-|:-|:-:|'
   }
 
@@ -136,9 +136,16 @@ function getFileTableRL(
         minCoverage.changed,
         emoji
     )
-    if(coverageInclusion.changed) {
-      totalChangedCoverageRow = `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
+    if(coverageInclusion.overall && coverageInclusion.changed) {
+      totalChangedCoverageRow = `|Total||${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
       table = `${table}\n${totalChangedCoverageRow}`
+    }
+    else if(coverageInclusion.changed) {
+      totalChangedCoverageRow = `|Total|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
+      table = `${table}\n${totalChangedCoverageRow}`
+    }
+    else if(coverageInclusion.overall) {
+
     }
   }
 

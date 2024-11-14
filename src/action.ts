@@ -50,6 +50,11 @@ export async function action(): Promise<void> {
     const shouldIncludeOverallCoverage = parseBooleans(core.getInput('include-overall-coverage'))
     const shouldIncludeDeltaCoverage = parseBooleans(core.getInput('include-delta-coverage'))
 
+    if(!shouldIncludeDeltaCoverage && !shouldIncludeOverallCoverage) {
+      core.setFailed("either delta coverage or overall coverage should be true");
+      return;
+    }
+
     const event = github.context.eventName
     core.info(`Event is ${event}`)
     if (debugMode) {

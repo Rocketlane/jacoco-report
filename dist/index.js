@@ -70,6 +70,10 @@ async function action() {
         const debugMode = (0, processors_1.parseBooleans)(core.getInput('debug-mode'));
         const shouldIncludeOverallCoverage = (0, processors_1.parseBooleans)(core.getInput('include-overall-coverage'));
         const shouldIncludeDeltaCoverage = (0, processors_1.parseBooleans)(core.getInput('include-delta-coverage'));
+        if (!shouldIncludeDeltaCoverage && !shouldIncludeOverallCoverage) {
+            core.setFailed("either delta coverage or overall coverage should be true");
+            return;
+        }
         const event = github.context.eventName;
         core.info(`Event is ${event}`);
         if (debugMode) {
@@ -502,7 +506,7 @@ function getFileTableRL(project, minCoverage, coverageInclusion, emoji) {
     var tableHeader;
     var tableStructure;
     if (coverageInclusion.overall && coverageInclusion.changed) {
-        tableHeader = '|File|Coverage|DeltaCoverage||';
+        tableHeader = '|File|TotalCoverage|DeltaCoverage||';
         tableStructure = '|:-|:-|:-|:-:|';
     }
     else if (coverageInclusion.changed) {
@@ -510,7 +514,7 @@ function getFileTableRL(project, minCoverage, coverageInclusion, emoji) {
         tableStructure = '|:-|:-|:-:|';
     }
     else if (coverageInclusion.overall) {
-        tableHeader = '|File|Coverage||';
+        tableHeader = '|File|TotalCoverage||';
         tableStructure = '|:-|:-|:-:|';
     }
     let table = `${tableHeader}\n${tableStructure}`;
@@ -533,9 +537,15 @@ function getFileTableRL(project, minCoverage, coverageInclusion, emoji) {
     if (totalChangedLines !== 0) {
         const changedLinesPercentage = (coveredLines / totalChangedLines) * 100;
         const filesChangedStatus = getStatus(changedLinesPercentage, minCoverage.changed, emoji);
-        if (coverageInclusion.changed) {
-            totalChangedCoverageRow = `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`;
+        if (coverageInclusion.overall && coverageInclusion.changed) {
+            totalChangedCoverageRow = `|Total||${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`;
             table = `${table}\n${totalChangedCoverageRow}`;
+        }
+        else if (coverageInclusion.changed) {
+            totalChangedCoverageRow = `|Total|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`;
+            table = `${table}\n${totalChangedCoverageRow}`;
+        }
+        else if (coverageInclusion.overall) {
         }
     }
     return table;
