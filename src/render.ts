@@ -128,11 +128,7 @@ function getFileTableRL(
         emoji
     )
     totalChangedCoverageRow =
-        '\n' +
-        `|Total Delta Coverage|${formatCoverage(
-            changedLinesPercentage
-        )}|${filesChangedStatus}|` +
-        '\n<br>'
+        `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
     table = `${table}\n${totalChangedCoverageRow}`
   }
 
