@@ -25,12 +25,8 @@ export function getPRComment(
     )
   }
 
-  let moduleTable = ''
-  let filesTable = ''
-  if(coverageInclusion.changed) {
-    moduleTable = getModuleTable(project.modules, minCoverage, emoji)
-    filesTable = getFileTableRL(project, minCoverage, emoji)
-  }
+  const moduleTable = getModuleTable(project.modules, minCoverage, emoji)
+  const filesTable = getFileTableRL(project, minCoverage, coverageInclusion, emoji)
 
   const tables =
     project.modules.length === 0
@@ -84,14 +80,27 @@ function getModuleTable(
 function getFileTableRL(
     project: Project,
     minCoverage: MinCoverage,
+    coverageInclusion: CoverageInclusion,
     emoji: Emoji
 ): string {
-  const tableHeader = project.isMultiModule
-      ? '|Module|File|FileCoverage|DeltaCoverage||'
-      : '|File|FileCoverage|DeltaCoverage||'
-  const tableStructure = project.isMultiModule
-      ? '|:-|:-|:-|:-|:-:|'
-      : '|:-|:-|:-|:-:|'
+
+  var tableHeader;
+  var tableStructure;
+  if(coverageInclusion.overall && coverageInclusion.changed) {
+    tableHeader = '|File|Coverage|DeltaCoverage||'
+    tableStructure = '|:-|:-|:-|:-:|'
+  }
+  else if(coverageInclusion.changed) {
+    tableHeader = '|File|DeltaCoverage||'
+    tableStructure = '|:-|:-|:-:|'
+  }
+  else if(coverageInclusion.overall) {
+    tableHeader = '|File|Coverage||'
+    tableStructure = '|:-|:-|:-:|'
+  }
+
+
+
   let table = `${tableHeader}\n${tableStructure}`
   for (const module of project.modules) {
     for (let index = 0; index < module.files.length; index++) {
@@ -127,15 +136,13 @@ function getFileTableRL(
         minCoverage.changed,
         emoji
     )
-    totalChangedCoverageRow =
-        `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
-    table = `${table}\n${totalChangedCoverageRow}`
+    if(coverageInclusion.changed) {
+      totalChangedCoverageRow = `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
+      table = `${table}\n${totalChangedCoverageRow}`
+    }
   }
 
-
-  return project.isMultiModule
-      ? `<details>\n<summary>Files</summary>\n\n${table}\n\n</details>`
-      : table
+  return table
   function renderRow(
       moduleName: string,
       fileName: string,
@@ -147,9 +154,18 @@ function getFileTableRL(
     const status = getStatus(changedCoverage, minCoverage.changed, emoji)
     let coveragePercentage = `${formatCoverage(overallCoverage)}`
     let deltaCoveragePercentage = `${formatCoverage(deltaCoverage)}`
-    const row = isMultiModule
-        ? `|${moduleName}|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
-        : `|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
+
+    var row = ''
+    if(coverageInclusion.overall && coverageInclusion.changed) {
+       row = `|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
+    }
+    else if(coverageInclusion.changed) {
+      row = `|${fileName}|${deltaCoveragePercentage}|${status}|`
+    }
+    else if(coverageInclusion.overall) {
+      row = `|${fileName}|${coveragePercentage}|${status}|`
+    }
+
     table = `${table}\n${row}`
   }
 }
