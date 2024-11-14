@@ -530,9 +530,7 @@ function getFileTableRL(project, minCoverage, emoji) {
         const changedLinesPercentage = (coveredLines / totalChangedLines) * 100;
         const filesChangedStatus = getStatus(changedLinesPercentage, minCoverage.changed, emoji);
         totalChangedCoverageRow =
-            '\n' +
-                `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|` +
-                '\n<br>';
+            `|Total Delta Coverage|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`;
         table = `${table}\n${totalChangedCoverageRow}`;
     }
     return project.isMultiModule
