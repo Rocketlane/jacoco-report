@@ -19,6 +19,7 @@ export interface File {
   overall: Coverage
   changed: Coverage | null
   lines: Line[]
+  prUrl?: string
 }
 
 export interface Coverage {
@@ -36,6 +37,11 @@ export interface Line {
 export interface MinCoverage {
   overall: number
   changed: number
+}
+
+export interface CoverageInclusion {
+  overall: boolean
+  changed: boolean
 }
 
 export interface Emoji {

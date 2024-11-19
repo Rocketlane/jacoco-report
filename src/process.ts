@@ -165,6 +165,7 @@ function getFileCoverageFromPackages(
             overall: overallCoverage,
             changed: changedCoverage,
             lines,
+            prUrl: githubFile.prUrl
           })
         }
       }

@@ -1,6 +1,7 @@
 import {JacocoFile} from './models/jacoco'
 import parser from 'xml2js'
 import {Counter, Package, Report} from './models/jacoco-types'
+const crypto = require('crypto');
 
 export function debug(obj: object): string {
   return JSON.stringify(obj, null, 4)
@@ -165,4 +166,8 @@ function convertObjToReport(obj: any): Report {
     package: getPackage(obj),
     counter: getCounter(obj),
   }
+}
+
+export function computeSHA256(input: string): string {
+  return crypto.createHash('sha256').update(input).digest('hex');
 }

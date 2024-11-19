@@ -6,10 +6,11 @@ import {parseBooleans} from 'xml2js/lib/processors'
 import * as glob from '@actions/glob'
 import {getProjectCoverage} from './process'
 import {getPRComment, getTitle} from './render'
-import {debug, getChangedLines, parseToReport} from './util'
+import {debug, getChangedLines, parseToReport, computeSHA256} from './util'
 import {Project} from './models/project'
 import {ChangedFile} from './models/github'
 import {Report} from './models/jacoco-types'
+import * as util from "util";
 
 export async function action(): Promise<void> {
   let continueOnError = true
@@ -46,6 +47,14 @@ export async function action(): Promise<void> {
     continueOnError = parseBooleans(core.getInput('continue-on-error'))
     const debugMode = parseBooleans(core.getInput('debug-mode'))
 
+    const shouldIncludeOverallCoverage = parseBooleans(core.getInput('include-overall-coverage'))
+    const shouldIncludeDeltaCoverage = parseBooleans(core.getInput('include-delta-coverage'))
+
+    if(!shouldIncludeDeltaCoverage && !shouldIncludeOverallCoverage) {
+      core.setFailed("either delta coverage or overall coverage should be true");
+      return;
+    }
+
     const event = github.context.eventName
     core.info(`Event is ${event}`)
     if (debugMode) {
@@ -55,32 +64,42 @@ export async function action(): Promise<void> {
 
     let base: string
     let head: string
-    let prNumber: number | undefined
+    let prNumberOpt: number | undefined
     switch (event) {
       case 'pull_request':
       case 'pull_request_target':
         base = github.context.payload.pull_request?.base.sha
         head = github.context.payload.pull_request?.head.sha
-        prNumber = github.context.payload.pull_request?.number
+        prNumberOpt = github.context.payload.pull_request?.number
         break
-      case 'push':
-        base = github.context.payload.before
-        head = github.context.payload.after
-        break
+      // case 'push':
+      //   base = github.context.payload.before
+      //   head = github.context.payload.after
+      //   break
       default:
         core.setFailed(
-          `Only pull requests and pushes are supported, ${github.context.eventName} not supported.`
+          `Only pull requests are supported, ${github.context.eventName} not supported.`
         )
         return
     }
 
     core.info(`base sha: ${base}`)
     core.info(`head sha: ${head}`)
+    core.info(`PR: ${prNumberOpt}`)
+
+    if(!prNumberOpt) {
+      core.setFailed(
+          `Need a PR number to proceed`
+      )
+      return
+    }
+
+    let prNumber:number = prNumberOpt
 
     const client = github.getOctokit(token)
 
     if (debugMode) core.info(`reportPaths: ${reportPaths}`)
-    const changedFiles = await getChangedFiles(base, head, client, debugMode)
+    const changedFiles = await getChangedFiles(base, head, prNumber, client, debugMode)
     if (debugMode) core.info(`changedFiles: ${debug(changedFiles)}`)
 
     const reportsJsonAsync = getJsonReports(reportPaths, debugMode)
@@ -114,6 +133,10 @@ export async function action(): Promise<void> {
           {
             overall: minCoverageOverall,
             changed: minCoverageChangedFiles,
+          },
+          {
+            overall: shouldIncludeOverallCoverage,
+            changed: shouldIncludeDeltaCoverage
           },
           title,
           emoji
@@ -152,23 +175,35 @@ async function getJsonReports(
 async function getChangedFiles(
   base: string,
   head: string,
+  prNumber: number,
   client: any,
   debugMode: boolean
 ): Promise<ChangedFile[]> {
-  const response = await client.rest.repos.compareCommits({
-    base,
-    head,
+
+
+  // const response = await client.rest.repos.compareCommits({
+  //   base,
+  //   head,
+  //   owner: github.context.repo.owner,
+  //   repo: github.context.repo.repo,
+  // })
+
+  const response = await client.rest.pulls.listFiles({
+    pull_number: prNumber,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-  })
+  });
 
   const changedFiles: ChangedFile[] = []
-  for (const file of response.data.files) {
+  for (const file of response.data) {
     if (debugMode) core.info(`file: ${debug(file)}`)
+
+    const hash = computeSHA256(file.filename);
     const changedFile: ChangedFile = {
       filePath: file.filename,
       url: file.blob_url,
       lines: getChangedLines(file.patch),
+      prUrl: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/pull/${prNumber}/files#diff-${hash}`,
     }
     changedFiles.push(changedFile)
   }

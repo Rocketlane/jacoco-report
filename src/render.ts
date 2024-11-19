@@ -1,4 +1,4 @@
-import {Coverage, Emoji, MinCoverage, Module, Project} from './models/project'
+import {Coverage, CoverageInclusion, Emoji, MinCoverage, Module, Project} from './models/project'
 
 const coverageAbsent =
   '> There is no coverage information present for the Files changed'
@@ -6,6 +6,7 @@ const coverageAbsent =
 export function getPRComment(
   project: Project,
   minCoverage: MinCoverage,
+  coverageInclusion: CoverageInclusion,
   title: string,
   emoji: Emoji
 ): string {
@@ -13,14 +14,19 @@ export function getPRComment(
   if (!project.overall) {
     return `${heading + coverageAbsent}`
   }
-  const overallTable = getOverallTable(
-    project.overall,
-    project.changed,
-    minCoverage,
-    emoji
-  )
+
+  var overallTable = ''
+  if(coverageInclusion.overall) {
+    overallTable = getOverallTableRl(
+        project.overall,
+        project.changed,
+        minCoverage,
+        emoji
+    )
+  }
+
   const moduleTable = getModuleTable(project.modules, minCoverage, emoji)
-  const filesTable = getFileTable(project, minCoverage, emoji)
+  const filesTable = getFileTableRL(project, minCoverage, coverageInclusion, emoji)
 
   const tables =
     project.modules.length === 0
@@ -69,6 +75,109 @@ function getModuleTable(
     table = `${table}\n${row}`
   }
 }
+
+
+function getFileTableRL(
+    project: Project,
+    minCoverage: MinCoverage,
+    coverageInclusion: CoverageInclusion,
+    emoji: Emoji
+): string {
+
+  var tableHeader;
+  var tableStructure;
+  if(coverageInclusion.overall && coverageInclusion.changed) {
+    tableHeader = '|File|TotalCoverage|DeltaCoverage||'
+    tableStructure = '|:-|:-|:-|:-:|'
+  }
+  else if(coverageInclusion.changed) {
+    tableHeader = '|File|DeltaCoverage||'
+    tableStructure = '|:-|:-|:-:|'
+  }
+  else if(coverageInclusion.overall) {
+    tableHeader = '|File|TotalCoverage||'
+    tableStructure = '|:-|:-|:-:|'
+  }
+
+
+
+  let table = `${tableHeader}\n${tableStructure}`
+  for (const module of project.modules) {
+    for (let index = 0; index < module.files.length; index++) {
+      const file = module.files[index]
+      let moduleName = module.name
+      if (index !== 0) {
+        moduleName = ''
+      }
+
+      const deltaCoverage = getDeltaCoverage(
+          file.changed
+      )
+      renderRow(
+          moduleName,
+          `[${file.name}](${file.prUrl})`,
+          file.overall.percentage,
+          deltaCoverage,
+          file.changed?.percentage ?? null,
+          project.isMultiModule
+      )
+    }
+  }
+
+  //total delta
+  const missedLines = project.changed?.missed ?? 0
+  const coveredLines = project.changed?.covered ?? 0
+  const totalChangedLines = missedLines + coveredLines
+  let totalChangedCoverageRow = ''
+  if (totalChangedLines !== 0) {
+    const changedLinesPercentage = (coveredLines / totalChangedLines) * 100
+    const filesChangedStatus = getStatus(
+        changedLinesPercentage,
+        minCoverage.changed,
+        emoji
+    )
+    if(coverageInclusion.overall && coverageInclusion.changed) {
+      totalChangedCoverageRow = `|Total||${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
+      table = `${table}\n${totalChangedCoverageRow}`
+    }
+    else if(coverageInclusion.changed) {
+      totalChangedCoverageRow = `|Total|${formatCoverage(changedLinesPercentage)}|${filesChangedStatus}|`
+      table = `${table}\n${totalChangedCoverageRow}`
+    }
+    else if(coverageInclusion.overall) {
+
+    }
+  }
+
+  return table
+  function renderRow(
+      moduleName: string,
+      fileName: string,
+      overallCoverage: number | null,
+      deltaCoverage: number | null,
+      changedCoverage: number | null,
+      isMultiModule: boolean
+  ): void {
+    const status = getStatus(changedCoverage, minCoverage.changed, emoji)
+    let coveragePercentage = `${formatCoverage(overallCoverage)}`
+    let deltaCoveragePercentage = `${formatCoverage(deltaCoverage)}`
+
+    var row = ''
+    if(coverageInclusion.overall && coverageInclusion.changed) {
+       row = `|${fileName}|${coveragePercentage}|${deltaCoveragePercentage}|${status}|`
+    }
+    else if(coverageInclusion.changed) {
+      row = `|${fileName}|${deltaCoveragePercentage}|${status}|`
+    }
+    else if(coverageInclusion.overall) {
+      row = `|${fileName}|${coveragePercentage}|${status}|`
+    }
+
+    table = `${table}\n${row}`
+  }
+}
+
+
 
 function getFileTable(
   project: Project,
@@ -127,6 +236,16 @@ function getFileTable(
   }
 }
 
+
+function getDeltaCoverage(
+    changed: Coverage | null
+): number | null {
+  if (!changed) return null
+  const totalInstructions = changed.covered + changed.missed
+  const coverage = (changed.covered / totalInstructions) * 100
+  return coverage;
+}
+
 function getCoverageDifference(
   overall: Coverage,
   changed: Coverage | null
@@ -179,6 +298,31 @@ function getOverallTable(
   }
   return `${tableHeader}\n${tableStructure}${changedCoverageRow}`
 }
+
+
+function getOverallTableRl(
+    overall: Coverage,
+    changed: Coverage | null,
+    minCoverage: MinCoverage,
+    emoji: Emoji
+): string {
+  const overallStatus = getStatus(
+      overall.percentage,
+      minCoverage.overall,
+      emoji
+  )
+  const coverageDifference = getCoverageDifference(overall, changed)
+  let coveragePercentage = `${formatCoverage(overall.percentage)}`
+  if (shouldShow(coverageDifference)) {
+    coveragePercentage += ` **\`${formatCoverage(coverageDifference)}\`**`
+  }
+  const tableHeader = `|Overall Project|${coveragePercentage}|${overallStatus}|`
+  const tableStructure = '|:-|:-|:-:|'
+
+  return `${tableHeader}\n${tableStructure}`
+}
+
+
 
 function round(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100
