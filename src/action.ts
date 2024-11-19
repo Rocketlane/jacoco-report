@@ -51,8 +51,7 @@ export async function action(): Promise<void> {
     const shouldIncludeDeltaCoverage = parseBooleans(core.getInput('include-delta-coverage'))
 
     if(!shouldIncludeDeltaCoverage && !shouldIncludeOverallCoverage) {
-      core.setFailed("either delta coverage or overall coverage should be true");
-      return;
+      throw new Error("either delta coverage or overall coverage should be true")
     }
 
     const event = github.context.eventName
@@ -77,10 +76,7 @@ export async function action(): Promise<void> {
       //   head = github.context.payload.after
       //   break
       default:
-        core.setFailed(
-          `Only pull requests are supported, ${github.context.eventName} not supported.`
-        )
-        return
+        throw new Error(`Only pull requests are supported, ${github.context.eventName} not supported.`)
     }
 
     core.info(`base sha: ${base}`)
