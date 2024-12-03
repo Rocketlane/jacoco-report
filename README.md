@@ -5,6 +5,65 @@
 A Github action that publishes the JaCoCo report as a comment in the Pull Request with customizable pass percentage for
 modified modules, files and the overall project. You can view the coverage of just the changed files in your pull request.
 
+
+
+## Usage in Rocketlane 
+
+### setting up repo 
+
+- clone the repo 
+`git clone git@github.com:Rocketlane/jacoco-report.git`
+  
+- checkout rl_main branch
+`git checkout rl_main`
+
+
+- Install dependencies
+`yarn install`
+  
+  
+
+
+
+### making changes (Development) 
+
+- branch off from rl_main
+`git checkout rl_main; git branch -b my_changes_branch;`
+
+- do changes to source files inside `jacoco-report/src` (NOT `jacoco-report/lib/src`)
+  
+- Build 
+`npm build run` (this will generate dist files)
+
+- Add a development tag and push it 
+`git tag -d tag_my_changes_branch 2> /dev/null; git tag tag_my_changes_branch;  git push --force origin tag_my_changes_branch;`
+  
+- Use this tag in your rocket-api testsuite 
+```
+uses: rocketlane/jacoco-report@tag_my_changes_branch
+```
+
+
+### publishing changes 
+
+- create a PR from `my_changes_branch` to `rl_main` 
+  
+- merge the PR 
+
+- pull latest changes 
+`git checkout rl_main; git pull origin rl_main`
+  
+- create a production tag  
+`git tag v1.7.1_rl_patch_1; git push origin v1.7.1_rl_patch_1`
+
+
+- Use this tag in your rocket-api testsuite
+```
+uses: rocketlane/jacoco-report@v1.7.1_rl_patch_1
+```
+
+
+
 ## Usage
 
 ### Pre-requisites
